@@ -14,9 +14,9 @@ stackedplot(table2timetable(origData))
 
 %%
 dataM = origData(:,2:end).Variables; % get the data to a matrix. excluding datetime, first variable
-varNam = origData(:,2:end).Properties.VariableNames;
+varNam = origData.
 figure;
-boxplot(dataM, varNam)
+boxplot(dataM)
 
 figure;
-boxplot(autosc(dataM),varNam)
+boxplot(dataM)
