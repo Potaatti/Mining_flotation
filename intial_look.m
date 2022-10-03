@@ -43,3 +43,6 @@ figure;
 stackedplot(mmTab);   
 % now in this figure basically only the variation that takes more than an hour is shown
 
+
+
+
