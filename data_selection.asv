@@ -16,7 +16,7 @@ TR3 = timerange("2017-08-15","2017-09-09");
 range1 = mmTab(TR1,:);
 range2 = mmTab(TR2,:);
 range3 = mmTab(TR3,:);
-origRange3 = ttorigData(TR3,:);
+origRange3 = 
 % figure; boxplot(zscore(range3.Variables))
 
 %% some initial this and that
