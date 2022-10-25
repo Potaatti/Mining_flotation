@@ -29,7 +29,7 @@ figure;bar(p(1:8,:),'DisplayName','p')
 
 %%
 
-adata = autosc(data);
+adata = autosc(data(:,[1:7 22:23]));
 
 bsave = [];
 ypred_save =[];
@@ -86,13 +86,13 @@ plot([ones(length(Y),1); yhat_save],'g')
 
 figure;
 h = heatmap(bsave(2:end,:),'Colormap', jet);
-h.YDisplayLabels = varNam(1:end-2);
-
+% h.YDisplayLabels = varNam(1:end-2);
+h.YDisplayLabels = varNam(1:7);
 
 %%
 % some kind of constraption, where the model is taught with previuous block and tested with the next
 
-dim = 8;
+dim = 5;
 bsave = [];
 bbsave = [];
 ypred_save =[];
@@ -124,11 +124,161 @@ plot(adata(:,end))
 hold on
 plot(y_p,'r')
 hold on
-plot([ yhat_save],'g') %ones(length(Yi),1);
+plot([ones(length(Yi),1); yhat_save],'g') %ones(length(Yi),1);
 
 figure;
 h = heatmap(bsave(2:end,:),'Colormap', jet);
-h.YDisplayLabels = varNam(1:end-2);
+h.YDisplayLabels = varNam(1:7);
+
 figure;
 h = heatmap(bbsave(2:end,2:end),'Colormap', jet);
-h.YDisplayLabels = varNam(1:end-2);
+h.YDisplayLabels = varNam(1:7);
+
+
+%%
+% moving window of teaching and predicting, 
+% so that both lenghts can be adjusted
+% write Q2 and R2 
+close all
+train_window = 1000;
+test_window  = 10;
+dim = 7;
+bsave = [];
+bbsave = [];
+ypred_save =[];
+yhat_save = [];
+ivals   = 1:train_window:length(adata);
+plotvas = 1:length(adata);
+ni = length(ivals);
+pvals_save = [];
+X = [];
+Y = [];
+R2 = [];
+Q2 = [];
+Xp = [];
+for K = 1 : ni -2
+    i  = [ivals(K):ivals(K+1)];
+    ii = [ivals(K+1):ivals(K+1)+test_window]; % test the ex 500 next values
+    Xi = adata(i,1:end-2);
+    X  = [X; Xi ];
+    Xp = [Xp; plotvas(i)']; % not used yet
+    Yi = adata(i,end);
+    Y = [Y; Yi];
+    Xpred = adata(ii,1:end-2);
+    xpredplot = plotvas(ii)';
+    Ypred = adata(ii,end);
+    [ypred,bb,T,P,Q,W,U] = plsreg(X,Y,dim);
+    y_p = ypred;
+    bbsave(:,K) = bb;
+    [yhat,b,that] = plspred(Xpred,P,Q,W,dim);
+    bsave(:,K) = b;
+    ypred_save = [ypred_save; ypred];
+    yhat_save  = [yhat_save; yhat];
+    pvals_save = [pvals_save; xpredplot];
+    rss = sum((Y-ypred).^2);
+    tss = sum((Y - mean(Y)).^2);
+    R2(K) = 1 - (rss/tss);
+    press = sum((Ypred-yhat).^2);
+    tssq = sum((Ypred - mean(Ypred)).^2);
+    Q2(K) = 1 - (press/tss);
+
+
+end
+
+
+figure;
+plot(adata(:,end))
+hold on
+plot(y_p,'r') % the final model with most data. really the piece by pievce model look a bit different
+% hold on
+% plot(Xp,ypred_save ,'r')
+hold on
+% plot([ones(length(Yi),1); yhat_save],'g') %ones(length(Yi),1);
+plot(pvals_save, yhat_save,'g') %ones(length(Yi),1);
+
+
+figure;
+h = heatmap(bsave(2:end,:),'Colormap', jet);
+h.YDisplayLabels = varNam(1:7);
+
+figure;
+h = heatmap(bbsave(2:end,2:end),'Colormap', jet);
+h.YDisplayLabels = varNam(1:7);
+
+figure;
+subplot(2,1,1); plot(Q2(2:end)); title('Q2')
+subplot(2,1,2); plot(R2); title('R2')
+
+%%
+% moving window of teaching and predicting, 
+% so that both lenghts can be adjusted
+% write Q2 and R2 
+close all
+train_window = 5000;
+test_window  = 1000;
+dim = 2;
+bsave = [];
+bbsave = [];
+ypred_save =[];
+yhat_save = [];
+ivals   = 1:train_window:length(adata);
+plotvas = 1:length(adata);
+ni = length(ivals);
+pvals_save = [];
+X = [];
+Y = [];
+R2 = [];
+Q2 = [];
+Xp = [];
+for K = 1 : ni -2
+    i  = [ivals(K):ivals(K+1)];
+    ii = [ivals(K+1):ivals(K+1)+test_window]; % test the ex 500 next values
+    Xi = adata(i,1:end-2);
+    X  = [ Xi ];
+    Xp = [Xp; plotvas(i)']; % not used yet
+    Yi = adata(i,end);
+    Y = [ Yi];
+    Xpred = adata(ii,1:end-2);
+    xpredplot = plotvas(ii)';
+    Ypred = adata(ii,end);
+    [ypred,bb,T,P,Q,W,U] = plsreg(X,Y,dim);
+    y_p = ypred;
+    bbsave(:,K) = bb;
+    [yhat,b,that] = plspred(Xpred,P,Q,W,dim);
+    bsave(:,K) = b;
+    ypred_save = [ypred_save; ypred];
+    yhat_save  = [yhat_save; yhat];
+    pvals_save = [pvals_save; xpredplot];
+    rss = sum((Y-ypred).^2);
+    tss = sum((Y - mean(Y)).^2);
+    R2(K) = 1 - (rss/tss);
+    press = sum((Ypred-yhat).^2);
+    tssq = sum((Ypred - mean(Ypred)).^2);
+    Q2(K) = 1 - (press/tss);
+
+
+end
+
+
+figure;
+plot(adata(:,end))
+% hold on
+% plot(y_p,'r') % the final model with most data. really the piece by pievce model look a bit different
+hold on
+plot(Xp,ypred_save ,'r')
+hold on
+% plot([ones(length(Yi),1); yhat_save],'g') %ones(length(Yi),1);
+plot(pvals_save, yhat_save,'g') %ones(length(Yi),1);
+
+
+figure;
+h = heatmap(bsave(2:end,:),'Colormap', jet);
+h.YDisplayLabels = varNam(1:7);
+
+figure;
+h = heatmap(bbsave(2:end,2:end),'Colormap', jet);
+h.YDisplayLabels = varNam(1:7);
+
+figure;
+subplot(2,1,1); plot(Q2(2:end)); title('Q2')
+subplot(2,1,2); plot(R2); title('R2')
